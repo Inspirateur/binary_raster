@@ -1,13 +1,18 @@
-#[derive(Clone)]
+use std::fmt::Debug;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct BitLine {
     data: Vec<usize>,
-    bits: usize
+    bits: usize,
 }
 
 impl BitLine {
+    pub fn chunks_to_fit(bits: usize) -> usize {
+        bits / usize::BITS as usize + if bits % usize::BITS as usize == 0 { 0 } else { 1 }
+    }
+
     pub fn from_bits(bits: &[u8]) -> Self {
-        let bitslen = bits.len() as u32;
-        let chunkslen = bitslen / usize::BITS + if bitslen % usize::BITS == 0 { 0 } else { 1 };
+        let chunkslen = BitLine::chunks_to_fit(bits.len());
         let mut data = vec![0; chunkslen as usize];
         let mut chunk_i = 0;
         let mut bit_i = 0;
@@ -21,7 +26,7 @@ impl BitLine {
                 chunk_i += 1;
             }
         }
-        Self { data, bits: bitslen as usize }
+        Self { data, bits: bits.len() }
     }
 
     pub fn to_bits(&self) -> Vec<u8> {
@@ -38,7 +43,7 @@ impl BitLine {
     }
 
     /// The position of the first bit with a value of 1 in the line
-    fn start(&self) -> Option<usize> {
+    pub fn start(&self) -> Option<usize> {
         for (i, segment) in self.data.iter().enumerate() {
             let leading_zeros = segment.leading_zeros();
             if leading_zeros < usize::BITS {
@@ -49,7 +54,7 @@ impl BitLine {
     }
 
     /// The position of the last bit with a value of 1 in the line
-    fn end(&self) -> Option<usize> {
+    pub fn end(&self) -> Option<usize> {
         for (i, segment) in self.data.iter().enumerate().rev() {
             let trailing_zeros = segment.trailing_zeros();
             if trailing_zeros < usize::BITS {
@@ -65,6 +70,11 @@ impl BitLine {
             return 0;
         };
         end - self.start().unwrap() + 1
+    }
+
+    /// The amount of usize that are used to represent the bitline
+    pub fn chunk_width(&self) -> usize {
+        self.data.len()
     }
 
     /// Shifts the bits of the bitline to the right, assumes the shifting amount is less than usize::BITS (32 or 64)
@@ -93,14 +103,27 @@ impl BitLine {
         }
     }
 
-    /// Checks if self have 1 bit in common with other
-    pub fn collision_check(&self, other: &BitLine) -> bool {
-        for i in 0..self.data.len().min(other.data.len()) {
-            if self.data[i] & other.data[i] != 0 {
+    /// Checks if other have 1 bit in common with self at the given offset
+    pub fn collision_check(&self, other: &BitLine, segment_offset: usize) -> bool {
+        debug_assert!(segment_offset+other.data.len() <= self.data.len());
+        if segment_offset >= self.data.len() {
+            return false;
+        }
+        let other_len = (other.data.len()+segment_offset).min(self.data.len())-segment_offset;
+        for i in 0..other_len {
+            if self.data[i+segment_offset] & other.data[i] != 0 {
                 return true;
             }
         }
         false
+    }
+
+    /// Add the entire source line to self at the given offset, assuming it fits
+    pub fn add_from(&mut self, source: &BitLine, segment_offset: usize) {
+        debug_assert!(segment_offset+source.data.len() <= self.data.len());
+        for i in 0..source.data.len() {
+            self.data[i+segment_offset] |= source.data[i];
+        }
     }
 }
 
@@ -118,7 +141,7 @@ mod tests {
     }
 
     fn collision_check(a: &[u8], b: &[u8]) -> bool {
-        BitLine::from_bits(a).collision_check(&BitLine::from_bits(b))
+        BitLine::from_bits(a).collision_check(&BitLine::from_bits(b), 0)
     }
 
     #[test]
