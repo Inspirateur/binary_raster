@@ -11,6 +11,10 @@ impl BitLine {
         bits / usize::BITS as usize + if bits % usize::BITS as usize == 0 { 0 } else { 1 }
     }
 
+    pub fn new(bits: usize) -> Self {
+        Self { data: vec![0; BitLine::chunks_to_fit(bits)], bits }
+    }
+
     pub fn from_bits(bits: &[u8]) -> Self {
         let chunkslen = BitLine::chunks_to_fit(bits.len());
         let mut data = vec![0; chunkslen as usize];

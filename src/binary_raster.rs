@@ -4,6 +4,12 @@ use crate::bitline::BitLine;
 pub struct BinaryRaster(Vec<BitLine>);
 
 impl BinaryRaster {
+    pub fn new(width: usize, height: usize) -> Self {
+        BinaryRaster(
+            (0..height).map(|_| BitLine::new(width)).collect(),
+        )
+    }
+
     pub fn from_raster(pixels: &[u8], width: usize) -> Self {
         BinaryRaster(
             (0..pixels.len()).step_by(width).map(|i| BitLine::from_bits(&pixels[i..(i+width)])).collect(),
