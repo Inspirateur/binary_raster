@@ -49,9 +49,9 @@ impl BitLine {
     /// The position of the first bit with a value of 1 in the line
     pub fn start(&self) -> Option<usize> {
         for (i, segment) in self.data.iter().enumerate() {
-            let leading_zeros = segment.leading_zeros();
-            if leading_zeros < usize::BITS {
-                return Some(i*usize::BITS as usize + leading_zeros as usize)
+            let trailing_zeros = segment.trailing_zeros();
+            if trailing_zeros < usize::BITS {
+                return Some(i*usize::BITS as usize + trailing_zeros as usize)
             }
         }
         None
@@ -60,9 +60,9 @@ impl BitLine {
     /// The position of the last bit with a value of 1 in the line
     pub fn end(&self) -> Option<usize> {
         for (i, segment) in self.data.iter().enumerate().rev() {
-            let trailing_zeros = segment.trailing_zeros();
-            if trailing_zeros < usize::BITS {
-                return Some((i+1)*usize::BITS as usize - trailing_zeros as usize - 1)
+            let leading_zeros = segment.leading_zeros();
+            if leading_zeros < usize::BITS {
+                return Some((i+1)*usize::BITS as usize - leading_zeros as usize - 1)
             }
         }
         None
@@ -175,8 +175,20 @@ mod tests {
     }
 
     #[test]
+    fn test_start() {
+        let bitline = BitLine::from_bits(&vec![0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0]);
+        assert_eq!(Some(2), bitline.start());
+    }
+
+    #[test]
+    fn test_end() {
+        let bitline = BitLine::from_bits(&vec![0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0]);
+        assert_eq!(Some(7), bitline.end());
+    }
+
+    #[test]
     fn test_width() {
-        let bitline = BitLine::from_bits(&vec![0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0]);
-        assert_eq!(7, bitline.width());
+        let bitline = BitLine::from_bits(&vec![0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0]);
+        assert_eq!(6, bitline.width());
     }
 }

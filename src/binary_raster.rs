@@ -21,6 +21,12 @@ impl BinaryRaster {
         self.0.iter().map(|bit_line| bit_line.chunk_width()).max().unwrap_or(0)
     }
 
+    fn max_chunkwidth_after_shift(&self, amount: u32) -> usize {
+        self.0.iter()
+            .map(|bit_line| BitLine::chunks_to_fit(bit_line.end().unwrap_or(0)+amount as usize))
+            .max().unwrap_or(0)
+    }
+
     fn shifted_right(&self, amount: u32) -> BinaryRaster {
         if amount == 0 {
             return self.clone();
@@ -29,6 +35,14 @@ impl BinaryRaster {
         BinaryRaster (
             self.0.iter().map(|bitline| bitline.shifted_right(amount)).collect(),
         )
+    }
+
+    /// Returns true if other fits within self at given pos, false otherwise
+    pub fn can_fit(&self, other: &BinaryRaster, pos: (usize, usize)) -> bool {
+        let segment_offset = (BitLine::chunks_to_fit(pos.0)-1).max(0);
+        let shift_amount = pos.0 as u32 % usize::BITS;
+        (segment_offset + other.max_chunkwidth_after_shift(shift_amount) <= self.max_chunkwidth())
+        && (pos.1 + other.0.len() < self.0.len())
     }
 
     fn collision_check(&self, source: &BinaryRaster, segment_offset: usize, line_offset: usize) -> bool {
@@ -90,8 +104,14 @@ impl BinaryRaster {
 
 #[cfg(test)]
 mod tests {
+    use rand::{rngs::ThreadRng, Rng};
     use super::BinaryRaster;
-
+    
+    fn random_raster(rng: &mut ThreadRng, width: usize, height: usize, zero_to_one_ratio: u8) -> BinaryRaster {
+        let pixels = (0..width*height).map(|_| 1-rng.gen_range(0..=zero_to_one_ratio).min(1)).collect::<Vec<_>>();
+        BinaryRaster::from_raster(&pixels, width)
+    }
+    
     #[test]
     fn test_right_shift() {
         let pixels = vec![
@@ -175,5 +195,16 @@ mod tests {
         assert!(!raster_a.collision_check_at(&raster_b, (3, 0)));
         // there should be a collision
         assert!(raster_a.collision_check_at(&raster_b, (2, 4)));
+    }
+
+    #[test]
+    fn test_bound_check() {
+        let mut rng = rand::thread_rng();
+        let main_raster = random_raster(&mut rng, 128, 20, 5);
+        let other_raster = random_raster(&mut rng, 20, 2, 0);
+        assert!(main_raster.can_fit(&other_raster, (63, 17)));
+        assert!(main_raster.can_fit(&other_raster, (107, 9)));
+        assert!(!main_raster.can_fit(&other_raster, (110, 0)));
+        assert!(!main_raster.can_fit(&other_raster, (10, 18)));
     }
 }
