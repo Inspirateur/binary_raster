@@ -39,7 +39,7 @@ impl BinaryRaster {
 
     /// Returns true if other fits within self at given pos, false otherwise
     pub fn can_fit(&self, other: &BinaryRaster, pos: (usize, usize)) -> bool {
-        let segment_offset = (BitLine::chunks_to_fit(pos.0)-1).max(0);
+        let segment_offset = BitLine::chunks_to_fit(pos.0).max(1)-1;
         let shift_amount = pos.0 as u32 % usize::BITS;
         (segment_offset + other.max_chunkwidth_after_shift(shift_amount) <= self.max_chunkwidth())
         && (pos.1 + other.0.len() < self.0.len())
@@ -57,7 +57,7 @@ impl BinaryRaster {
     /// Adds entire source to self at the given position if there's no bit collision and if it fits
     /// Returns Ok(()) if the item was added (no collision), and Err(()) otherwise
     pub fn add_from_checked(&mut self, source: &BinaryRaster, pos: (usize, usize)) -> Result<(), ()> {
-        let segment_offset = (BitLine::chunks_to_fit(pos.0)-1).max(0);
+        let segment_offset = BitLine::chunks_to_fit(pos.0).max(1)-1;
         debug_assert!(segment_offset + source.max_chunkwidth() <= self.max_chunkwidth());
         debug_assert!(pos.1 + source.0.len() <= self.0.len());
         let shift_amount = pos.0 as u32 % usize::BITS;
@@ -73,7 +73,7 @@ impl BinaryRaster {
 
     /// Adds entire source to self at the given position without checking from collision, assuming it fits
     pub fn add_from(&mut self, source: &BinaryRaster, pos: (usize, usize)) {
-        let segment_offset = (BitLine::chunks_to_fit(pos.0)-1).max(0);
+        let segment_offset = BitLine::chunks_to_fit(pos.0).max(1)-1;
         debug_assert!(segment_offset + source.max_chunkwidth() <= self.max_chunkwidth());
         debug_assert!(pos.1 + source.0.len() <= self.0.len());
         let shift_amount = pos.0 as u32 % usize::BITS;
@@ -88,7 +88,7 @@ impl BinaryRaster {
         if pos.1 >= self.0.len() {
             return false;
         }
-        let segment_offset = (BitLine::chunks_to_fit(pos.0)-1).max(0);
+        let segment_offset = BitLine::chunks_to_fit(pos.0).max(1)-1;
         let shift_amount = pos.0 as u32 % usize::BITS;
         let other = other.shifted_right(shift_amount);
         let other_height = (other.0.len()+pos.1).min(self.0.len())-pos.1;
