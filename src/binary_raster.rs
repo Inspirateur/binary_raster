@@ -23,7 +23,7 @@ impl BinaryRaster {
 
     fn max_chunkwidth_after_shift(&self, amount: u32) -> usize {
         self.0.iter()
-            .map(|bit_line| BitLine::chunks_to_fit(bit_line.end().unwrap_or(0)+amount as usize))
+            .map(|bit_line| BitLine::chunks_to_fit(bit_line.bits+amount as usize))
             .max().unwrap_or(0)
     }
 

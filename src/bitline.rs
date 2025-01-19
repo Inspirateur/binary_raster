@@ -3,7 +3,7 @@ use std::fmt::Debug;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct BitLine {
     data: Vec<usize>,
-    bits: usize,
+    pub(crate) bits: usize,
 }
 
 impl BitLine {
@@ -121,15 +121,10 @@ impl BitLine {
         false
     }
 
-    /// Add the all bits set to 1 from source line to self at the given offset, assuming they fit
-    /// Note: the length of source can be greater than self, all that matters is where the last 1 bit is
+    /// Add the entire source to self at the given offset, assuming it fits
     pub fn add_from(&mut self, source: &BitLine, segment_offset: usize) {
-        let Some(end) = source.end() else {
-            return;
-        };
-        debug_assert!(segment_offset+end <= self.bits);
-        let source_len = (source.data.len()+segment_offset).min(self.data.len())-segment_offset;
-        for i in 0..source_len {
+        debug_assert!(source.data.len()+segment_offset <= self.data.len());
+        for i in 0..source.data.len() {
             self.data[i+segment_offset] |= source.data[i];
         }
     }
