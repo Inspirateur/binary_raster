@@ -58,14 +58,6 @@ impl BinaryRaster {
     /// Returns Ok(()) if the item was added (no collision), and Err(()) otherwise
     pub fn add_from_checked(&mut self, source: &BinaryRaster, pos: (usize, usize)) -> Result<(), ()> {
         let segment_offset = BitLine::chunks_to_fit(pos.0).max(1)-1;
-        debug_assert!(
-            segment_offset + source.max_chunkwidth() <= self.max_chunkwidth(), 
-            "{} + {} > {}", segment_offset, source.max_chunkwidth(), self.max_chunkwidth()
-        );
-        debug_assert!(
-            pos.1 + source.0.len() <= self.0.len(), 
-            "{} + {} > {}", pos.1, source.0.len(), self.0.len()
-        );
         let shift_amount = pos.0 as u32 % usize::BITS;
         let source = source.shifted_right(shift_amount);
         if self.collision_check(&source, segment_offset, pos.1) {
@@ -80,14 +72,6 @@ impl BinaryRaster {
     /// Adds entire source to self at the given position without checking from collision, assuming it fits
     pub fn add_from(&mut self, source: &BinaryRaster, pos: (usize, usize)) {
         let segment_offset = BitLine::chunks_to_fit(pos.0).max(1)-1;
-        debug_assert!(
-            segment_offset + source.max_chunkwidth() <= self.max_chunkwidth(), 
-            "{} + {} > {}", segment_offset, source.max_chunkwidth(), self.max_chunkwidth()
-        );
-        debug_assert!(
-            pos.1 + source.0.len() <= self.0.len(), 
-            "{} + {} > {}", pos.1, source.0.len(), self.0.len()
-        );
         let shift_amount = pos.0 as u32 % usize::BITS;
         let source = source.shifted_right(shift_amount);
         for line_i in 0..source.0.len() {
