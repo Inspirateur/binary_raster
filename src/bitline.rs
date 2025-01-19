@@ -128,7 +128,8 @@ impl BitLine {
             return;
         };
         debug_assert!(segment_offset+end <= self.bits);
-        for i in 0..source.data.len().min(self.data.len()) {
+        let source_len = (source.data.len()+segment_offset).min(self.data.len())-segment_offset;
+        for i in 0..source_len {
             self.data[i+segment_offset] |= source.data[i];
         }
     }
