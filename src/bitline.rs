@@ -122,10 +122,14 @@ impl BitLine {
         false
     }
 
-    /// Add the entire source line to self at the given offset, assuming it fits
+    /// Add the all bits set to 1 from source line to self at the given offset, assuming they fit
+    /// Note: the length of source can be greater than self, all that matters is where the last 1 bit is
     pub fn add_from(&mut self, source: &BitLine, segment_offset: usize) {
-        debug_assert!(segment_offset+source.data.len() <= self.data.len());
-        for i in 0..source.data.len() {
+        let Some(end) = source.end() else {
+            return;
+        };
+        debug_assert!(segment_offset+end <= self.bits);
+        for i in 0..source.data.len().min(self.data.len()) {
             self.data[i+segment_offset] |= source.data[i];
         }
     }
