@@ -1,6 +1,6 @@
 [package]
 name = "binary_raster"
-version = "0.1.6"
+version = "0.1.7"
 edition = "2021"
 description = "Binary raster crate for efficient pixel-based collision detection"
 license = "Unlicense"

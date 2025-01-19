@@ -109,7 +109,6 @@ impl BitLine {
 
     /// Checks if other have 1 bit in common with self at the given offset
     pub fn collision_check(&self, other: &BitLine, segment_offset: usize) -> bool {
-        debug_assert!(segment_offset+other.data.len() <= self.data.len());
         if segment_offset >= self.data.len() {
             return false;
         }
