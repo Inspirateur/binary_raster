@@ -11,6 +11,10 @@ impl BinaryRaster {
     }
 
     pub fn from_raster(pixels: &[u8], width: usize) -> Self {
+        // .step_by(width) panics if we feed it a value of 0
+        if width == 0 {
+            return BinaryRaster(Vec::new());
+        }
         BinaryRaster(
             (0..pixels.len()).step_by(width).map(|i| BitLine::from_bits(&pixels[i..(i+width)])).collect(),
         )
