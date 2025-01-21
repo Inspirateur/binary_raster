@@ -43,8 +43,7 @@ impl BinaryRaster {
 
     /// Returns true if other fits within self at given pos, false otherwise
     pub fn can_fit(&self, other: &BinaryRaster, pos: (usize, usize)) -> bool {
-        let segment_offset = BitLine::chunks_to_fit(pos.0).max(1)-1;
-        let shift_amount = pos.0 as u32 % usize::BITS;
+        let (segment_offset, shift_amount) = BitLine::chunked(pos.0);
         (segment_offset + other.max_chunkwidth_after_shift(shift_amount) <= self.max_chunkwidth())
         && (pos.1 + other.0.len() < self.0.len())
     }
@@ -58,25 +57,23 @@ impl BinaryRaster {
         false
     }
 
-    /// Adds entire source to self at the given position if there's no bit collision and if it fits
+    /// Adds entire source to self at the given position if there's no bit collision, assuming it fits
     /// Returns Ok(()) if the item was added (no collision), and Err(()) otherwise
     pub fn add_from_checked(&mut self, source: &BinaryRaster, pos: (usize, usize)) -> Result<(), ()> {
-        let segment_offset = BitLine::chunks_to_fit(pos.0).max(1)-1;
-        let shift_amount = pos.0 as u32 % usize::BITS;
+        let (segment_offset, shift_amount) = BitLine::chunked(pos.0);
         let source = source.shifted_right(shift_amount);
         if self.collision_check(&source, segment_offset, pos.1) {
             return Err(())
         }
         for line_i in 0..source.0.len() {
-            self.0[pos.1 + line_i].add_from(&source.0[line_i], segment_offset);
+            self.0[line_i + pos.1].add_from(&source.0[line_i], segment_offset);
         }
         Ok(())
     }
 
-    /// Adds entire source to self at the given position without checking from collision, assuming it fits
+    /// Adds entire source to self at the given position without checking for collision, assuming it fits
     pub fn add_from(&mut self, source: &BinaryRaster, pos: (usize, usize)) {
-        let segment_offset = BitLine::chunks_to_fit(pos.0).max(1)-1;
-        let shift_amount = pos.0 as u32 % usize::BITS;
+        let (segment_offset, shift_amount) = BitLine::chunked(pos.0);
         let source = source.shifted_right(shift_amount);
         for line_i in 0..source.0.len() {
             self.0[line_i + pos.1].add_from(&source.0[line_i], segment_offset);
@@ -88,8 +85,7 @@ impl BinaryRaster {
         if pos.1 >= self.0.len() {
             return false;
         }
-        let segment_offset = BitLine::chunks_to_fit(pos.0).max(1)-1;
-        let shift_amount = pos.0 as u32 % usize::BITS;
+        let (segment_offset, shift_amount) = BitLine::chunked(pos.0);
         let other = other.shifted_right(shift_amount);
         let other_height = (other.0.len()+pos.1).min(self.0.len())-pos.1;
         for line_i in 0..other_height {

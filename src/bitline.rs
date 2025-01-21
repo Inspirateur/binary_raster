@@ -7,6 +7,16 @@ pub(crate) struct BitLine {
 }
 
 impl BitLine {
+    /// Turns a "continuous" position i into a "chunked" position i
+    /// returning the index of the u64 and the position of the bit inside that u64
+    pub fn chunked(i: usize) -> (usize, u32) {
+        (
+            i / usize::BITS as usize,
+            i as u32 % usize::BITS
+        )
+    }
+
+    /// How many u64 are needed to store this amount of bits ? 
     pub fn chunks_to_fit(bits: usize) -> usize {
         bits / usize::BITS as usize + if bits % usize::BITS as usize == 0 { 0 } else { 1 }
     }
