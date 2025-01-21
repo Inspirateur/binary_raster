@@ -95,8 +95,20 @@ impl BinaryRaster {
         }
         false
     }
-}
 
+    /// Gets a String display of the raster at the desired resolution, with "■" for 1 and " " for 0
+    /// A resolution of 1 displays every bit, 2 displays 1/2 bits, etc.
+    pub fn get_display(&self, resolution: u32) -> String {
+        if resolution == 0 {
+            return String::new();
+        }
+        self.0.iter()
+            .step_by(resolution as usize)
+            .map(|bitline| bitline.get_display(resolution))
+            .collect::<Vec<_>>()
+            .join("\n")
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -202,5 +214,16 @@ mod tests {
         assert!(main_raster.can_fit(&other_raster, (107, 9)));
         assert!(!main_raster.can_fit(&other_raster, (110, 0)));
         assert!(!main_raster.can_fit(&other_raster, (10, 18)));
+    }
+
+    #[test]
+    fn test_display() {
+        println!("{}", BinaryRaster::from_raster(&vec![
+            0, 1, 0, 1, 0,
+            0, 1, 0, 1, 0,
+            0, 0, 0, 0, 0,
+            1, 0, 0, 0, 1,
+            0, 1, 1, 1, 0,
+        ], 5).get_display(1));
     }
 }

@@ -1,4 +1,6 @@
-use std::fmt::Debug;
+use core::fmt::Debug;
+const BIT_1: char = '▮';
+const BIT_0: char = '▯';
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct BitLine {
@@ -138,11 +140,25 @@ impl BitLine {
             self.data[i+segment_offset] |= source.data[i];
         }
     }
+
+    /// Gets a String display of the bitline at the desired resolution, with "■" for 1 and " " for 0
+    /// A resolution of 1 displays every bit, 2 displays 1/2 bits, etc.
+    pub fn get_display(&self, resolution: u32) -> String {
+        // a resolution of 0 would panic because of .step_by(resolution)
+        if resolution == 0 {
+            return String::new();
+        }
+        self.to_bits()
+            .into_iter()
+            .step_by(resolution as usize)
+            .map(|bit| if bit == 1 { BIT_1 } else { BIT_0 })
+            .collect()
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::BitLine;
+    use super::{BitLine, BIT_0, BIT_1};
     use rand::Rng;
 
     #[test]
@@ -199,5 +215,17 @@ mod tests {
     fn test_width() {
         let bitline = BitLine::from_bits(&vec![0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0]);
         assert_eq!(6, bitline.width());
+    }
+
+    #[test]
+    fn test_display() {
+        let mut rng = rand::thread_rng();
+        let bits = (0..100).map(|_| rng.gen_range(0..=1)).collect::<Vec<_>>();
+        let bitline = BitLine::from_bits(&bits);
+        let truth = bits.into_iter().map(|bit| if bit == 1 { BIT_1 } else { BIT_0 } ).collect::<String>();
+        assert_eq!(truth, bitline.get_display(1));
+        // test half resolution
+        let bitline = BitLine::from_bits(&vec![0, 1, 1, 1, 0, 1, 0, 0, 1]);
+        assert_eq!(vec![BIT_0, BIT_1, BIT_0, BIT_0, BIT_1].into_iter().collect::<String>(), bitline.get_display(2));
     }
 }
