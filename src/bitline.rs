@@ -1,6 +1,6 @@
 use core::fmt::Debug;
-const BIT_1: char = '▮';
-const BIT_0: char = '▯';
+const BIT_1: &str = "██";
+const BIT_0: &str = "  ";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct BitLine {
