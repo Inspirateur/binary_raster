@@ -20,7 +20,7 @@ fn bench_collision_at(c: &mut Criterion) {
 }
 
 criterion_group!(
-    mesh, 
+    raster, 
     bench_collision_at, 
 );
-criterion_main!(mesh);
+criterion_main!(raster);
