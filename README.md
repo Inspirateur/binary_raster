@@ -8,16 +8,18 @@ Collision checking on a 800x400 raster takes **~1 μs** on a Intel(R) Xeon(R) CP
 ```rust
 fn main() {
     // say you got an image you wish to do collision checking against
-    let img = todo!()
-    let pixels: Vec<u8> = img.grey_scale();
+    let img_a = todo!()
+    let pixels_a: Vec<u8> = img_a.grey_scale();
     // build a binary raster like this
-    let raster = BinaryRaster::from_raster(&pixels, img.width());
+    let raster_a = BinaryRaster::from_raster(&pixels_a, img_a.width());
     // and another image you wish to do collision checking with
-    let other_img = todo!();
-    let other_raster = BinaryRaster::from_raster(&other_img.grey_scale(), other_img.width());
-    // fast collision checking with position (25, 40)
-    if raster.collision_check_at(&other_raster, (25, 40)) {
-        // do stuff
+    let img_b = todo!();
+    let pixels_b: Vec<u8> = img_b.grey_scale();
+    let raster_b = BinaryRaster::from_raster(&pixels_b, img_b.width());
+    // collision checking of raster_b
+    // positionned at (25, 40) relatively to raster_a
+    if raster_a.collision_check_at(&raster_b, (25, 40)) {
+        // There is a collision
         todo!()
     }
 }
